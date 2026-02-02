@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-type asyncController = (req : Request, res:Response, next:NextFunction) => Promise<any>;
+type asyncController = (req:Request, res:Response, next:NextFunction) => Promise<any>;
 
 function asyncHandler(fn : asyncController) {
     return function(req: Request, res: Response, next: NextFunction){

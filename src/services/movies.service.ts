@@ -10,17 +10,17 @@ export const addMovie = async (data: Prisma.MovieCreateInput) => {
 };
 
 
-export const deleteMovie = async(id : number) => {
+export const deleteMovie = async(movieId : number) => {
     const response = await prisma.movie.delete({
-        where : { id }
+        where : { movieId }
     });
 
     return response;
 }
 
-export const getMovie = async(id : number) => {
+export const getMovie = async(movieId : number) => {
     const movie = await prisma.movie.findUnique({
-        where : {id}
+        where : {movieId}
     });
 
     return movie;

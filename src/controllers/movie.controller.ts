@@ -3,10 +3,6 @@ import {StatusCodes} from 'http-status-codes';
 import { MovieService } from '../services';
 import asyncHandler from '../utils/async-handler';
 import { Request, Response } from 'express';
-import { id } from 'zod/v4/locales';
-import { success } from 'zod';
-import { error } from 'node:console';
-import { request } from 'node:http';
 
 
 export const addMovie = asyncHandler(async(req : Request, res : Response) => {
@@ -23,7 +19,7 @@ export const addMovie = asyncHandler(async(req : Request, res : Response) => {
 });
 
 export const deleteMovie = asyncHandler(async(req : Request, res: Response) => {
-    const response = await MovieService.deleteMovie(parseInt(req.params.id as string));
+    const response = await MovieService.deleteMovie(parseInt(req.params.movieId as string));
 
     return res.status(StatusCodes.OK).json({
         success: true,
@@ -34,14 +30,15 @@ export const deleteMovie = asyncHandler(async(req : Request, res: Response) => {
 });
 
 export const getMovie = asyncHandler(async(req:Request, res:Response) => {
-    const response = await MovieService.getMovie(parseInt(req.params.id as string));
+    const {movieId} = req.params;
+    const response = await MovieService.getMovie(parseInt(movieId as string));
 
     if(!response) {
         return res.status(StatusCodes.NOT_FOUND).json({
             success : false,
             message : 'Movie not found',
             data : {},
-            error : {explanation : `No movie found with ID ${id}`}
+            error : {explanation : `No movie found with ID ${movieId}`}
         });
     }
 

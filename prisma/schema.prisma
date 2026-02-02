@@ -1,21 +1,21 @@
-generator client {
-  provider = "prisma-client-js"
-}
+  generator client {
+    provider = "prisma-client-js"
+  }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+  datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+  }
 
-model Movie {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  duration    Int
-  cast        String[]
-  trailerUrl  String
-  releaseDate DateTime
+  model Movie {
+    movieId          Int      @id @default(autoincrement())
+    title       String
+    description String?
+    duration    Int
+    cast        String[]
+    trailerUrl  String
+    releaseDate DateTime
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime  @updatedAt
-}
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+  }
