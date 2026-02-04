@@ -1,21 +1,106 @@
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-  }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-  model Movie {
-    movieId          Int      @id @default(autoincrement())
-    title       String
-    description String?
-    duration    Int
-    cast        String[]
-    trailerUrl  String
-    releaseDate DateTime
+model Movie {
+  movieId     Int      @id @default(autoincrement())
+  title       String
+  description String?
+  duration    Int
+  cast        String[]
+  trailerUrl  String
+  releaseDate DateTime
 
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-  }
+  showtime Showtime[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  userId    Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(USER)
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Theater {
+  theaterId Int      @id @default(autoincrement())
+  name      String
+  location  String
+  screens   Screen[]
+  createdAt DateTime @default(now())
+}
+
+model Screen {
+  screenId  Int        @id @default(autoincrement())
+  name      String
+  capacity  Int
+  theaterId Int
+  theater   Theater    @relation(fields: [theaterId], references: [theaterId])
+  seats     Seat[]
+  showtimes Showtime[]
+}
+
+model Seat {
+  seatId   Int      @id @default(autoincrement())
+  row      String
+  number   Int
+  screenId Int
+  screen   Screen   @relation(fields: [screenId], references: [screenId])
+  tickets  Ticket[]
+}
+
+model Showtime {
+  showtimeId Int      @id @default(autoincrement())
+  movieId    Int
+  movie      Movie    @relation(fields: [movieId], references: [movieId])
+  screenId   Int
+  screen     Screen   @relation(fields: [screenId], references: [screenId])
+  startTime  DateTime
+  endTime    DateTime
+  price      Decimal
+  tickets    Ticket[]
+}
+
+model Booking {
+  bookingId Int           @id @default(autoincrement())
+  userId    Int
+  user      User          @relation(fields: [userId], references: [userId])
+  tickets   Ticket[]
+  total     Decimal
+  status    BookingStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Ticket {
+  ticketId   Int      @id @default(autoincrement())
+  bookingId  Int
+  booking    Booking  @relation(fields: [bookingId], references: [bookingId])
+  showtimeId Int
+  showtime   Showtime @relation(fields: [showtimeId], references: [showtimeId])
+  seatId     Int
+  seat       Seat     @relation(fields: [seatId], references: [seatId])
+
+  @@unique([showtimeId, seatId]) // prevents double-booking
+}
