@@ -31,6 +31,16 @@ export const authenticate = (req:Request, res:Response, next:NextFunction) => {
     }
 
     const token = authHeader.split(' ')[1];
+    if(!token) {
+        Logger.warn('AuthMiddleware : authenticate : Token missing after Bearer');
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+            success: false,
+            message: 'Token missing',
+            data: {},
+            error: {}
+        });
+    }
+
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as unknown as {
             userId : number;
