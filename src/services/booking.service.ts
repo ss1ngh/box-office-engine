@@ -61,4 +61,31 @@ export const createBooking = async(
         Logger.info(`BookingService : createBooking : Booking created with ID: ${booking.bookingId}`);
         return booking;
     });
+};
+
+
+export const cancelBooking = async(bookingId : number, userId : number) => {
+
+    Logger.info(`BookingService : cancelBooking : User ${userId} cancelling booking ${bookingId}`);
+    const booking = await prisma.booking.findUnique({
+        where : {bookingId},
+    })
+
+    if(!booking) {
+        Logger.error(`BookingService : cancelBooking : Booking not found: ${bookingId}`);
+        throw Object.assign(new Error('Booking not found'), {statusCode : 404 });
+    }
+
+    if(booking.userId !== userId) {
+        Logger.warn(`BookingService : cancelBooking : User ${userId} unauthorized for booking ${bookingId}`);
+        throw Object.assign(new Error('Not Authorized'), {statusCode : 403})
+    }
+
+    const updated = await prisma.booking.update({
+        where : {bookingId},
+        data : {status : 'CANCELLED'},
+    })
+
+    Logger.info(`BookingService : cancelBooking : Booking cancelled: ${bookingId}`);
+    return updated;
 }
