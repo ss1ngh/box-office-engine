@@ -28,7 +28,13 @@ export const getTheaterById = async(theaterId : number) => {
 
     const theater = await prisma.theater.findUnique({
         where : {theaterId},
-        include : {screens : {include : {seats : true}}}
+        include : {
+            screens : {  //get all screens for this theatre
+                include : {
+                    seats : true //get all seats for each of those screens
+                }
+            }
+        }
     });
 
     if(!theater) {
