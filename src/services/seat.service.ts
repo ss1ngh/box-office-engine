@@ -1,4 +1,5 @@
 import { prisma, Logger } from '../config';
+import { AppError } from '../utils/AppError';
 import { CreateSeatsInput } from '../schema/seat.schema';
 
 // Bulk create seats for a screen
@@ -12,7 +13,7 @@ export const createSeats = async (data: CreateSeatsInput) => {
 
     if (!screen) {
         Logger.error(`SeatService : createSeats : Screen not found: ${data.screenId}`);
-        throw Object.assign(new Error('Screen not found'), { statusCode: 404 });
+        throw new AppError('Screen not found', 404);
     }
 
     // Generate seat data
@@ -67,7 +68,7 @@ export const getAvailableSeats = async (showtimeId: number) => {
 
     if (!showtime) {
         Logger.error(`SeatService : getAvailableSeats : Showtime not found: ${showtimeId}`);
-        throw Object.assign(new Error('Showtime not found'), { statusCode: 404 });
+        throw new AppError('Showtime not found', 404);
     }
 
     // Get booked seat IDs for this showtime

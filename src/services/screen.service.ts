@@ -1,4 +1,5 @@
 import { prisma, Logger } from '../config';
+import { AppError } from '../utils/AppError';
 import { CreateScreenInput, UpdateScreenInput } from '../schema/screen.schema';
 
 export const createScreen = async (data: CreateScreenInput) => {
@@ -11,7 +12,7 @@ export const createScreen = async (data: CreateScreenInput) => {
 
     if (!theater) {
         Logger.error(`ScreenService : createScreen : Theater not found: ${data.theaterId}`);
-        throw Object.assign(new Error('Theater not found'), { statusCode: 404 });
+        throw new AppError('Theater not found', 404);
     }
 
     const screen = await prisma.screen.create({

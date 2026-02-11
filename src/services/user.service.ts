@@ -1,4 +1,5 @@
 import { prisma, Logger } from '../config';
+import { AppError } from '../utils/AppError';
 
 export const getUserProfile = async (userId: number) => {
     Logger.info(`UserService : getUserProfile : Fetching profile for user ${userId}`);
@@ -17,7 +18,7 @@ export const getUserProfile = async (userId: number) => {
 
     if (!user) {
         Logger.warn(`UserService : getUserProfile : User not found: ${userId}`);
-        throw Object.assign(new Error('User not found'), { statusCode: 404 });
+        throw new AppError('User not found', 404);
     }
 
     return user;
@@ -70,12 +71,12 @@ export const getBookingById = async (bookingId: number, userId: number) => {
 
     if (!booking) {
         Logger.warn(`UserService : getBookingById : Booking not found: ${bookingId}`);
-        throw Object.assign(new Error('Booking not found'), { statusCode: 404 });
+        throw new AppError('Booking not found', 404);
     }
 
     if (booking.userId !== userId) {
         Logger.warn(`UserService : getBookingById : User ${userId} unauthorized for booking ${bookingId}`);
-        throw Object.assign(new Error('Not authorized'), { statusCode: 403 });
+        throw new AppError('Not authorized', 403);
     }
 
     return booking;

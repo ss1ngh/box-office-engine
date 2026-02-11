@@ -5,7 +5,7 @@ import apiRoutes from './routes';
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({extended : true}));
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRoutes);
 
@@ -13,18 +13,18 @@ app.use('/api', apiRoutes);
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
     Logger.error(err.message, {
-        stack : err.stack,
-        url : req.originalUrl,
-        method : req.method
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method
     });
 
-    const statusCode = err.statusCode || err.status || 500; 
+    const statusCode = err.statusCode || err.status || 500;
     const message = err.message || "Internal Server Error";
 
     return res.status(statusCode).json({
-        success : false,
-        message : message,
-        data : {}
+        success: false,
+        message: message,
+        data: {}
     });
 
 });

@@ -1,5 +1,6 @@
 import { Decimal } from '@prisma/client/runtime/library';
 import { prisma, Logger } from '../config';
+import { AppError } from '../utils/AppError';
 import { CreateShowtimeInput, UpdateShowtimeInput } from '../schema/showtime.schema';
 
 export const createShowtime = async (data: CreateShowtimeInput) => {
@@ -11,7 +12,7 @@ export const createShowtime = async (data: CreateShowtimeInput) => {
     });
     if (!movie) {
         Logger.error(`ShowtimeService : createShowtime : Movie not found: ${data.movieId}`);
-        throw Object.assign(new Error('Movie not found'), { statusCode: 404 });
+        throw new AppError('Movie not found', 404);
     }
 
     // Verify screen exists
@@ -20,7 +21,7 @@ export const createShowtime = async (data: CreateShowtimeInput) => {
     });
     if (!screen) {
         Logger.error(`ShowtimeService : createShowtime : Screen not found: ${data.screenId}`);
-        throw Object.assign(new Error('Screen not found'), { statusCode: 404 });
+        throw new AppError('Screen not found', 404);
     }
 
     // Check for overlapping showtimes
@@ -38,7 +39,7 @@ export const createShowtime = async (data: CreateShowtimeInput) => {
 
     if (overlapping) {
         Logger.warn(`ShowtimeService : createShowtime : Overlapping showtime detected`);
-        throw Object.assign(new Error('This screen has an overlapping showtime'), { statusCode: 409 });
+        throw new AppError('This screen has an overlapping showtime', 409);
     }
 
     const showtime = await prisma.showtime.create({
@@ -134,7 +135,7 @@ export const deleteShowtime = async (showtimeId: number) => {
 
     if (ticketCount > 0) {
         Logger.warn(`ShowtimeService : deleteShowtime : Cannot delete - has ${ticketCount} tickets`);
-        throw Object.assign(new Error('Cannot delete showtime with existing bookings'), { statusCode: 400 });
+        throw new AppError('Cannot delete showtime with existing bookings', 400);
     }
 
     await prisma.showtime.delete({

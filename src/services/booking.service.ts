@@ -1,37 +1,38 @@
-import {prisma, Logger} from '../config';
+import { prisma, Logger } from '../config';
+import { AppError } from '../utils/AppError';
 import { Decimal } from '@prisma/client/runtime/library';
 
-export const createBooking = async(
-    userId : number,
-    showtimeId : number,
-    seatIds : number[],
+export const createBooking = async (
+    userId: number,
+    showtimeId: number,
+    seatIds: number[],
 ) => {
     Logger.info(`BookingService : createBooking : User ${userId} booking seats [${seatIds.join(', ')}] for showtime ${showtimeId}`);
 
     return await prisma.$transaction(async (tx) => {
 
         const showtime = await tx.showtime.findUnique({
-            where  : {showtimeId}
+            where: { showtimeId }
         });
 
-        if(!showtime) {
+        if (!showtime) {
             Logger.error(`BookingService : createBooking : Showtime not found: ${showtimeId}`);
 
-            throw Object.assign(new Error('Showtime not found'), { statusCode: 404 });
+            throw new AppError('Showtime not found', 404);
         }
 
 
         const existingTickets = await tx.ticket.findMany({
-            where : {
+            where: {
                 showtimeId,
-                seatId : {in : seatIds}
+                seatId: { in: seatIds }
             }
         });
 
-        if(existingTickets.length > 0) {
+        if (existingTickets.length > 0) {
             const bookedSeats = existingTickets.map(t => t.seatId);
             Logger.warn(`BookingService : createBooking : Seats already booked: [${bookedSeats.join(', ')}]`);
-            throw Object.assign( new Error('One or more seats are already booked'), {statusCode : 409});
+            throw new AppError('One or more seats are already booked', 409);
         }
 
         //calculate total
@@ -40,21 +41,21 @@ export const createBooking = async(
 
         //create booking
         const booking = await tx.booking.create({
-            data : {
+            data: {
                 userId,
                 total,
-                status : "PENDING",
+                status: "PENDING",
 
-                tickets : {
-                    create : seatIds.map(seatId => ({
+                tickets: {
+                    create: seatIds.map(seatId => ({
                         showtimeId,
                         seatId
                     }))
                 }
             },
-            include : {
-                tickets : {
-                    include : {seat : true, showtime: { include : {movie : true} } }
+            include: {
+                tickets: {
+                    include: { seat: true, showtime: { include: { movie: true } } }
                 }
             }
         });
@@ -64,26 +65,26 @@ export const createBooking = async(
 };
 
 
-export const cancelBooking = async(bookingId : number, userId : number) => {
+export const cancelBooking = async (bookingId: number, userId: number) => {
 
     Logger.info(`BookingService : cancelBooking : User ${userId} cancelling booking ${bookingId}`);
     const booking = await prisma.booking.findUnique({
-        where : {bookingId},
+        where: { bookingId },
     })
 
-    if(!booking) {
+    if (!booking) {
         Logger.error(`BookingService : cancelBooking : Booking not found: ${bookingId}`);
-        throw Object.assign(new Error('Booking not found'), {statusCode : 404 });
+        throw new AppError('Booking not found', 404);
     }
 
-    if(booking.userId !== userId) {
+    if (booking.userId !== userId) {
         Logger.warn(`BookingService : cancelBooking : User ${userId} unauthorized for booking ${bookingId}`);
-        throw Object.assign(new Error('Not Authorized'), {statusCode : 403})
+        throw new AppError('Not Authorized', 403);
     }
 
     const updated = await prisma.booking.update({
-        where : {bookingId},
-        data : {status : 'CANCELLED'},
+        where: { bookingId },
+        data: { status: 'CANCELLED' },
     })
 
     Logger.info(`BookingService : cancelBooking : Booking cancelled: ${bookingId}`);
