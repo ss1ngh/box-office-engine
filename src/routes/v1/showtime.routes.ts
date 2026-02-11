@@ -6,7 +6,7 @@ import { createShowtimeSchema, updateShowtimeSchema } from '../../schema/showtim
 
 const router = express.Router();
 
-// Public routes - supports query params: ?movieId=1&screenId=1&date=2026-02-07
+// Public routes
 router.get('/', ShowtimeController.getAllShowtimes);
 router.get('/:showtimeId', ShowtimeController.getShowtimeById);
 
