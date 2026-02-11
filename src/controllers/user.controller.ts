@@ -49,9 +49,24 @@ export const getMyBookings = asyncHandler(async (req: Request, res: Response) =>
     });
 });
 
-export const getBookingById = asyncHandler(async (req: Request, res: Response) => {
-    const bookingId = parseInt(req.params.bookingId as string);
-    Logger.info(`UserController : getBookingById : Fetching booking ${bookingId}`);
+interface BookingParams {
+    bookingId?: string;
+}
+
+export const getBookingById = asyncHandler(async (req: Request<BookingParams>, res: Response) => {
+    const { bookingId } = req.params;
+
+    if (!bookingId || isNaN(parseInt(bookingId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Booking ID',
+            data: {},
+            error: { explanation: 'The bookingId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(bookingId);
+    Logger.info(`UserController : getBookingById : Fetching booking ${id}`);
 
     if (!req.user) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -62,7 +77,7 @@ export const getBookingById = asyncHandler(async (req: Request, res: Response) =
         });
     }
 
-    const booking = await UserService.getBookingById(bookingId, req.user.userId);
+    const booking = await UserService.getBookingById(id, req.user.userId);
 
     return res.status(StatusCodes.OK).json({
         success: true,

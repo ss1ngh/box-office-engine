@@ -17,19 +17,41 @@ export const createShowtime = asyncHandler(async (req: Request, res: Response) =
     });
 });
 
-export const getAllShowtimes = asyncHandler(async (req: Request, res: Response) => {
+interface ShowtimeQuery {
+    movieId?: string;
+    screenId?: string;
+    date?: string;
+}
+
+export const getAllShowtimes = asyncHandler(async (req: Request<{}, {}, {}, ShowtimeQuery>, res: Response) => {
     Logger.info('ShowtimeController : getAllShowtimes : Request Received');
 
     const filters: { movieId?: number; screenId?: number; date?: string } = {};
 
     if (req.query.movieId) {
-        filters.movieId = parseInt(req.query.movieId as string);
+        if (isNaN(parseInt(req.query.movieId))) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Invalid Movie ID',
+                data: {},
+                error: { explanation: 'movieId must be a number' }
+            });
+        }
+        filters.movieId = parseInt(req.query.movieId);
     }
     if (req.query.screenId) {
-        filters.screenId = parseInt(req.query.screenId as string);
+        if (isNaN(parseInt(req.query.screenId))) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Invalid Screen ID',
+                data: {},
+                error: { explanation: 'screenId must be a number' }
+            });
+        }
+        filters.screenId = parseInt(req.query.screenId);
     }
     if (req.query.date) {
-        filters.date = req.query.date as string;
+        filters.date = req.query.date;
     }
 
     const showtimes = await ShowtimeService.getAllShowtimes(filters);
@@ -42,18 +64,33 @@ export const getAllShowtimes = asyncHandler(async (req: Request, res: Response) 
     });
 });
 
-export const getShowtimeById = asyncHandler(async (req: Request, res: Response) => {
-    const showtimeId = parseInt(req.params.showtimeId as string);
-    Logger.info(`ShowtimeController : getShowtimeById : Fetching showtime ${showtimeId}`);
+interface ShowtimeParams {
+    showtimeId?: string;
+}
 
-    const showtime = await ShowtimeService.getShowtimeById(showtimeId);
+export const getShowtimeById = asyncHandler(async (req: Request<ShowtimeParams>, res: Response) => {
+    const { showtimeId } = req.params;
+
+    if (!showtimeId || isNaN(parseInt(showtimeId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Showtime ID',
+            data: {},
+            error: { explanation: 'The showtimeId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(showtimeId);
+    Logger.info(`ShowtimeController : getShowtimeById : Fetching showtime ${id}`);
+
+    const showtime = await ShowtimeService.getShowtimeById(id);
 
     if (!showtime) {
         return res.status(StatusCodes.NOT_FOUND).json({
             success: false,
             message: 'Showtime not found',
             data: {},
-            error: { explanation: `No showtime found with ID ${showtimeId}` }
+            error: { explanation: `No showtime found with ID ${id}` }
         });
     }
 
@@ -65,11 +102,22 @@ export const getShowtimeById = asyncHandler(async (req: Request, res: Response) 
     });
 });
 
-export const updateShowtime = asyncHandler(async (req: Request, res: Response) => {
-    const showtimeId = parseInt(req.params.showtimeId as string);
-    Logger.info(`ShowtimeController : updateShowtime : Updating showtime ${showtimeId}`);
+export const updateShowtime = asyncHandler(async (req: Request<ShowtimeParams>, res: Response) => {
+    const { showtimeId } = req.params;
 
-    const showtime = await ShowtimeService.updateShowtime(showtimeId, req.body);
+    if (!showtimeId || isNaN(parseInt(showtimeId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Showtime ID',
+            data: {},
+            error: { explanation: 'The showtimeId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(showtimeId);
+    Logger.info(`ShowtimeController : updateShowtime : Updating showtime ${id}`);
+
+    const showtime = await ShowtimeService.updateShowtime(id, req.body);
 
     return res.status(StatusCodes.OK).json({
         success: true,
@@ -79,11 +127,22 @@ export const updateShowtime = asyncHandler(async (req: Request, res: Response) =
     });
 });
 
-export const deleteShowtime = asyncHandler(async (req: Request, res: Response) => {
-    const showtimeId = parseInt(req.params.showtimeId as string);
-    Logger.info(`ShowtimeController : deleteShowtime : Deleting showtime ${showtimeId}`);
+export const deleteShowtime = asyncHandler(async (req: Request<ShowtimeParams>, res: Response) => {
+    const { showtimeId } = req.params;
 
-    await ShowtimeService.deleteShowtime(showtimeId);
+    if (!showtimeId || isNaN(parseInt(showtimeId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Showtime ID',
+            data: {},
+            error: { explanation: 'The showtimeId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(showtimeId);
+    Logger.info(`ShowtimeController : deleteShowtime : Deleting showtime ${id}`);
+
+    await ShowtimeService.deleteShowtime(id);
 
     return res.status(StatusCodes.OK).json({
         success: true,

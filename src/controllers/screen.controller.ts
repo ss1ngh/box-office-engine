@@ -17,10 +17,27 @@ export const createScreen = asyncHandler(async (req: Request, res: Response) => 
     });
 });
 
-export const getAllScreens = asyncHandler(async (req: Request, res: Response) => {
+interface ScreenQuery {
+    theaterId?: string;
+}
+
+export const getAllScreens = asyncHandler(async (req: Request<{}, {}, {}, ScreenQuery>, res: Response) => {
     Logger.info('ScreenController : getAllScreens : Request Received');
 
-    const theaterId = req.query.theaterId ? parseInt(req.query.theaterId as string) : undefined;
+    let theaterId: number | undefined;
+
+    if (req.query.theaterId) {
+        if (isNaN(parseInt(req.query.theaterId))) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'Invalid Theater ID',
+                data: {},
+                error: { explanation: 'theaterId must be a number' }
+            });
+        }
+        theaterId = parseInt(req.query.theaterId);
+    }
+
     const screens = await ScreenService.getAllScreens(theaterId);
 
     return res.status(StatusCodes.OK).json({
@@ -31,18 +48,33 @@ export const getAllScreens = asyncHandler(async (req: Request, res: Response) =>
     });
 });
 
-export const getScreenById = asyncHandler(async (req: Request, res: Response) => {
-    const screenId = parseInt(req.params.screenId as string);
-    Logger.info(`ScreenController : getScreenById : Fetching screen ${screenId}`);
+interface ScreenParams {
+    screenId?: string;
+}
 
-    const screen = await ScreenService.getScreenById(screenId);
+export const getScreenById = asyncHandler(async (req: Request<ScreenParams>, res: Response) => {
+    const { screenId } = req.params;
+
+    if (!screenId || isNaN(parseInt(screenId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Screen ID',
+            data: {},
+            error: { explanation: 'The screenId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(screenId);
+    Logger.info(`ScreenController : getScreenById : Fetching screen ${id}`);
+
+    const screen = await ScreenService.getScreenById(id);
 
     if (!screen) {
         return res.status(StatusCodes.NOT_FOUND).json({
             success: false,
             message: 'Screen not found',
             data: {},
-            error: { explanation: `No screen found with ID ${screenId}` }
+            error: { explanation: `No screen found with ID ${id}` }
         });
     }
 
@@ -54,11 +86,22 @@ export const getScreenById = asyncHandler(async (req: Request, res: Response) =>
     });
 });
 
-export const updateScreen = asyncHandler(async (req: Request, res: Response) => {
-    const screenId = parseInt(req.params.screenId as string);
-    Logger.info(`ScreenController : updateScreen : Updating screen ${screenId}`);
+export const updateScreen = asyncHandler(async (req: Request<ScreenParams>, res: Response) => {
+    const { screenId } = req.params;
 
-    const screen = await ScreenService.updateScreen(screenId, req.body);
+    if (!screenId || isNaN(parseInt(screenId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Screen ID',
+            data: {},
+            error: { explanation: 'The screenId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(screenId);
+    Logger.info(`ScreenController : updateScreen : Updating screen ${id}`);
+
+    const screen = await ScreenService.updateScreen(id, req.body);
 
     return res.status(StatusCodes.OK).json({
         success: true,
@@ -68,11 +111,22 @@ export const updateScreen = asyncHandler(async (req: Request, res: Response) => 
     });
 });
 
-export const deleteScreen = asyncHandler(async (req: Request, res: Response) => {
-    const screenId = parseInt(req.params.screenId as string);
-    Logger.info(`ScreenController : deleteScreen : Deleting screen ${screenId}`);
+export const deleteScreen = asyncHandler(async (req: Request<ScreenParams>, res: Response) => {
+    const { screenId } = req.params;
 
-    await ScreenService.deleteScreen(screenId);
+    if (!screenId || isNaN(parseInt(screenId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Screen ID',
+            data: {},
+            error: { explanation: 'The screenId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(screenId);
+    Logger.info(`ScreenController : deleteScreen : Deleting screen ${id}`);
+
+    await ScreenService.deleteScreen(id);
 
     return res.status(StatusCodes.OK).json({
         success: true,

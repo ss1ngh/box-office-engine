@@ -17,11 +17,26 @@ export const createSeats = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
-export const getSeatsByScreen = asyncHandler(async (req: Request, res: Response) => {
-    const screenId = parseInt(req.params.screenId as string);
-    Logger.info(`SeatController : getSeatsByScreen : Fetching seats for screen ${screenId}`);
+interface SeatScreenParams {
+    screenId?: string;
+}
 
-    const seats = await SeatService.getSeatsByScreen(screenId);
+export const getSeatsByScreen = asyncHandler(async (req: Request<SeatScreenParams>, res: Response) => {
+    const { screenId } = req.params;
+
+    if (!screenId || isNaN(parseInt(screenId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Screen ID',
+            data: {},
+            error: { explanation: 'The screenId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(screenId);
+    Logger.info(`SeatController : getSeatsByScreen : Fetching seats for screen ${id}`);
+
+    const seats = await SeatService.getSeatsByScreen(id);
 
     return res.status(StatusCodes.OK).json({
         success: true,
@@ -31,11 +46,26 @@ export const getSeatsByScreen = asyncHandler(async (req: Request, res: Response)
     });
 });
 
-export const getAvailableSeats = asyncHandler(async (req: Request, res: Response) => {
-    const showtimeId = parseInt(req.params.showtimeId as string);
-    Logger.info(`SeatController : getAvailableSeats : Fetching available seats for showtime ${showtimeId}`);
+interface SeatShowtimeParams {
+    showtimeId?: string;
+}
 
-    const result = await SeatService.getAvailableSeats(showtimeId);
+export const getAvailableSeats = asyncHandler(async (req: Request<SeatShowtimeParams>, res: Response) => {
+    const { showtimeId } = req.params;
+
+    if (!showtimeId || isNaN(parseInt(showtimeId))) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid or missing Showtime ID',
+            data: {},
+            error: { explanation: 'The showtimeId parameter must be a valid number.' }
+        });
+    }
+
+    const id = parseInt(showtimeId);
+    Logger.info(`SeatController : getAvailableSeats : Fetching available seats for showtime ${id}`);
+
+    const result = await SeatService.getAvailableSeats(id);
 
     return res.status(StatusCodes.OK).json({
         success: true,
