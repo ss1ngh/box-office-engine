@@ -13,3 +13,9 @@ export const updateScreenSchema = z.object({
 
 export type CreateScreenInput = z.infer<typeof createScreenSchema>;
 export type UpdateScreenInput = z.infer<typeof updateScreenSchema>;
+
+export const getScreenByIdSchema = z.object({
+    params: z.object({
+        screenId: z.string().regex(/^\d+$/, "Screen ID must be a numeric string").transform(Number)
+    })
+});

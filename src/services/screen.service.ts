@@ -4,7 +4,7 @@ import { CreateScreenInput, UpdateScreenInput } from '../schema/screen.schema';
 export const createScreen = async (data: CreateScreenInput) => {
     Logger.info(`ScreenService : createScreen : Creating screen: ${data.name} for theater ${data.theaterId}`);
 
-    // verify theater exists
+    // Verify theater exists
     const theater = await prisma.theater.findUnique({
         where: { theaterId: data.theaterId }
     });
@@ -30,8 +30,10 @@ export const createScreen = async (data: CreateScreenInput) => {
 export const getAllScreens = async (theaterId?: number) => {
     Logger.info(`ScreenService : getAllScreens : Fetching screens${theaterId ? ` for theater ${theaterId}` : ''}`);
 
+    const where = theaterId ? { theaterId } : {};
+
     const screens = await prisma.screen.findMany({
-        ...(theaterId ? { where: { theaterId } } : {}),
+        where,
         include: { theater: true, seats: true }
     });
 
@@ -61,16 +63,17 @@ export const getScreenById = async (screenId: number) => {
 export const updateScreen = async (screenId: number, data: UpdateScreenInput) => {
     Logger.info(`ScreenService : updateScreen : Updating screen ID: ${screenId}`);
 
-    // remove undefined properties
-    const updateData = Object.fromEntries(
-        Object.entries(data).filter(([_, v]) => v !== undefined)
-    );
+    // Remove undefined keys for exactOptionalPropertyTypes compatibility
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.capacity !== undefined) updateData.capacity = data.capacity;
 
     const screen = await prisma.screen.update({
         where: { screenId },
         data: updateData,
         include: { theater: true }
     });
+
 
     Logger.info(`ScreenService : updateScreen : Screen updated: ${screenId}`);
     return screen;
