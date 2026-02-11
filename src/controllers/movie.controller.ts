@@ -69,4 +69,4 @@ export const getAllMovies = asyncHandler(async( req : Request, res : Response) =
         data: response,
         error:  {}
     })
-})
+});
